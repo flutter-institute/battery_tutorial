@@ -1,42 +1,115 @@
 import 'package:flutter/material.dart';
+import 'package:battery/battery.dart';
 
-void main() => runApp(new MyApp());
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
+    return MaterialApp(
       title: 'Battery Display',
-      theme: new ThemeData(
+      theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new BatteryLevelPage(),
+      home: BatteryLevelPage(),
     );
   }
 }
 
 class BatteryLevelPage extends StatefulWidget {
   @override
-  _BatteryLevelPageState createState() => new _BatteryLevelPageState();
+  _BatteryLevelPageState createState() => _BatteryLevelPageState();
 }
 
 class _BatteryLevelPageState extends State<BatteryLevelPage> {
-  int _level = 0;
+  BatteryState _batteryState;
+  int _batteryLevel;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _batteryState = BatteryState.charging;
+    _batteryLevel = 75;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text("Battery Level"),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Battery Level"),
       ),
-      body: new Center(
-        child: new Column(
+      body: Center(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            new Text('Your current battery level is'),
+            SizedBox(
+              height: 25.0,
+              width: 100.0,
+              child: CustomPaint(
+                painter: _BatteryLevelPainter(_batteryLevel, _batteryState),
+                child: _batteryState == BatteryState.charging ? Icon(Icons.flash_on) : Container(),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+}
+
+class _BatteryLevelPainter extends CustomPainter {
+  final int _batteryLevel;
+  final BatteryState _batteryState;
+
+  _BatteryLevelPainter(this._batteryLevel, this._batteryState);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint getPaint({Color color = Colors.black, PaintingStyle style = PaintingStyle.stroke}) {
+      return Paint()
+        ..color = color
+        ..strokeWidth = 1.0
+        ..style = style;
+    }
+
+    final double batteryRight = size.width - 4.0;
+
+    final RRect batteryOutline = RRect.fromLTRBR(0.0, 0.0, batteryRight, size.height, Radius.circular(3.0));
+
+    // Battery body
+    canvas.drawRRect(
+      batteryOutline,
+      getPaint(),
+    );
+
+    // Battery nub
+    canvas.drawRect(
+      Rect.fromLTWH(batteryRight, (size.height / 2.0) - 5.0, 4.0, 10.0),
+      getPaint(style: PaintingStyle.fill),
+    );
+
+    // Fill rect
+    canvas.clipRect(Rect.fromLTWH(0.0, 0.0, batteryRight * _batteryLevel / 100.0, size.height));
+
+    Color indicatorColor;
+    if (_batteryLevel < 15) {
+      indicatorColor = Colors.red;
+    } else if (_batteryLevel < 30) {
+      indicatorColor = Colors.orange;
+    } else {
+      indicatorColor = Colors.green;
+    }
+
+    canvas.drawRRect(
+      RRect.fromLTRBR(0.5, 0.5, batteryRight - 0.5, size.height - 0.5, Radius.circular(3.0)),
+      getPaint(style: PaintingStyle.fill, color: indicatorColor)
+    );
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    final _BatteryLevelPainter old = oldDelegate as _BatteryLevelPainter;
+    return old._batteryLevel != _batteryLevel || old._batteryState != _batteryState;
   }
 }

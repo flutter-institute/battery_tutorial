@@ -22,6 +22,8 @@ class BatteryLevelPage extends StatefulWidget {
 }
 
 class _BatteryLevelPageState extends State<BatteryLevelPage> {
+  final Battery _battery = Battery();
+
   BatteryState _batteryState;
   int _batteryLevel;
 
@@ -29,8 +31,20 @@ class _BatteryLevelPageState extends State<BatteryLevelPage> {
   void initState() {
     super.initState();
 
-    _batteryState = BatteryState.charging;
-    _batteryLevel = 75;
+    _battery.batteryLevel.then((level) {
+      this.setState(() {
+        _batteryLevel = level;
+      });
+    });
+
+    _battery.onBatteryStateChanged.listen((BatteryState state) {
+      _battery.batteryLevel.then((level) {
+        this.setState(() {
+          _batteryLevel = level;
+          _batteryState = state;
+        });
+      });
+    });
   }
 
   @override

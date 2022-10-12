@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:battery/battery.dart';
+import 'package:battery_plus/battery_plus.dart';
 
 void main() => runApp(MyApp());
 
@@ -24,8 +24,8 @@ class BatteryLevelPage extends StatefulWidget {
 class _BatteryLevelPageState extends State<BatteryLevelPage> {
   final Battery _battery = Battery();
 
-  BatteryState _batteryState;
-  int _batteryLevel;
+  BatteryState? _batteryState;
+  int? _batteryLevel;
 
   @override
   void initState() {
@@ -61,8 +61,11 @@ class _BatteryLevelPageState extends State<BatteryLevelPage> {
               height: 25.0,
               width: 100.0,
               child: CustomPaint(
-                painter: _BatteryLevelPainter(_batteryLevel, _batteryState),
-                child: _batteryState == BatteryState.charging ? Icon(Icons.flash_on) : Container(),
+                painter:
+                    _BatteryLevelPainter(_batteryLevel ?? 0, _batteryState),
+                child: _batteryState == BatteryState.charging
+                    ? Icon(Icons.flash_on)
+                    : Container(),
               ),
             ),
           ],
@@ -74,13 +77,15 @@ class _BatteryLevelPageState extends State<BatteryLevelPage> {
 
 class _BatteryLevelPainter extends CustomPainter {
   final int _batteryLevel;
-  final BatteryState _batteryState;
+  final BatteryState? _batteryState;
 
   _BatteryLevelPainter(this._batteryLevel, this._batteryState);
 
   @override
   void paint(Canvas canvas, Size size) {
-    Paint getPaint({Color color = Colors.black, PaintingStyle style = PaintingStyle.stroke}) {
+    Paint getPaint(
+        {Color color = Colors.black,
+        PaintingStyle style = PaintingStyle.stroke}) {
       return Paint()
         ..color = color
         ..strokeWidth = 1.0
@@ -89,7 +94,8 @@ class _BatteryLevelPainter extends CustomPainter {
 
     final double batteryRight = size.width - 4.0;
 
-    final RRect batteryOutline = RRect.fromLTRBR(0.0, 0.0, batteryRight, size.height, Radius.circular(3.0));
+    final RRect batteryOutline = RRect.fromLTRBR(
+        0.0, 0.0, batteryRight, size.height, Radius.circular(3.0));
 
     // Battery body
     canvas.drawRRect(
@@ -104,7 +110,8 @@ class _BatteryLevelPainter extends CustomPainter {
     );
 
     // Fill rect
-    canvas.clipRect(Rect.fromLTWH(0.0, 0.0, batteryRight * _batteryLevel / 100.0, size.height));
+    canvas.clipRect(Rect.fromLTWH(
+        0.0, 0.0, batteryRight * _batteryLevel / 100.0, size.height));
 
     Color indicatorColor;
     if (_batteryLevel < 15) {
@@ -116,14 +123,15 @@ class _BatteryLevelPainter extends CustomPainter {
     }
 
     canvas.drawRRect(
-      RRect.fromLTRBR(0.5, 0.5, batteryRight - 0.5, size.height - 0.5, Radius.circular(3.0)),
-      getPaint(style: PaintingStyle.fill, color: indicatorColor)
-    );
+        RRect.fromLTRBR(0.5, 0.5, batteryRight - 0.5, size.height - 0.5,
+            Radius.circular(3.0)),
+        getPaint(style: PaintingStyle.fill, color: indicatorColor));
   }
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
     final _BatteryLevelPainter old = oldDelegate as _BatteryLevelPainter;
-    return old._batteryLevel != _batteryLevel || old._batteryState != _batteryState;
+    return old._batteryLevel != _batteryLevel ||
+        old._batteryState != _batteryState;
   }
 }
